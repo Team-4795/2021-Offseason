@@ -51,6 +51,7 @@ public class Shooter extends SubsystemBase {
 
     hoodLimit = hood.getForwardLimitSwitch(LimitSwitchPolarity.kNormallyOpen);
 
+    hood.setInverted(true);
     hood.setSoftLimit(SoftLimitDirection.kReverse, -51.5f); 
     hood.enableSoftLimit(SoftLimitDirection.kReverse, true);
 
@@ -122,6 +123,6 @@ public class Shooter extends SubsystemBase {
     SmartDashboard.putBoolean("limit switch", hoodLimit.get());
     SmartDashboard.putNumber("shooter speed", (leaderFlywheel.getSelectedSensorVelocity()) / 2048.0 * 600);
     SmartDashboard.putNumber("hood encoder ticks", hoodEncoder.getPosition());
-    SmartDashboard.putNumber("hood angle", -hoodEncoder.getPosition() / encoderRotationsPerHoodDegree);
+    SmartDashboard.putNumber("hood angle", hoodEncoder.getPosition() / encoderRotationsPerHoodDegree);
   }
 }
