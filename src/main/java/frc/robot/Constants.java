@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
+
 public final class Constants {
 	public static final class ShooterConstants {
 		public static final int LEADER_FLYWHEEL_TALON = 6;
@@ -44,5 +46,24 @@ public final class Constants {
 		public static final int B_BUTTON = 0;
 	
 		public static final double JOYSTICK_DEADBAND = 0.05;
+	}
+
+	public static final class DriveConstants {
+		public static final double ksVolts = 0.929;
+		public static final double kvVoltSecondsPerMeter = 6.33;
+		public static final double kaVoltSecondsSquaredPerMeter = 0.0389;
+	
+		public static final double kPDriveVel = 0.085;
+	
+		public static final double kTrackwidthMeters = 0.142072613;
+		public static final DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackwidthMeters);
+	}
+	
+	public static final class AutoConstants {
+		public static final double kMaxSpeedMetersPerSecond = 1;
+		public static final double kMaxAccelerationMetersPerSecondSquared = 1;
+		
+		public static final double kRamseteB = 2;
+		public static final double kRamseteZeta = 0.7;
 	}
 }

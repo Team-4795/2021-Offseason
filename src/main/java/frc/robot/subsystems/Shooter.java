@@ -72,7 +72,7 @@ public class Shooter extends SubsystemBase {
     hoodController.setI(0);
     hoodController.setD(0);
     hoodController.setIZone(0);
-    hoodController.setOutputRange(-0.25, 0.5);
+    hoodController.setOutputRange(-0.5, 0.5);
 
     leaderFlywheel.config_kF(0, 0.0485, 0);
     leaderFlywheel.config_kP(0, 0.016, 0);

@@ -15,7 +15,13 @@ import frc.robot.commands.Shoot;
 import frc.robot.commands.Index;
 import frc.robot.commands.RunTests;
 import frc.robot.Constants.ControllerConstants;
+
+import java.util.List;
+
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.controller.PIDController;
+import edu.wpi.first.wpilibj.controller.RamseteController;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -23,7 +29,16 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton; 
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
+
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
+import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
 
 public class RobotContainer {
   private final PowerDistributionPanel PDP = new PowerDistributionPanel(0);
@@ -63,7 +78,7 @@ public class RobotContainer {
       new SequentialCommandGroup(new WaitCommand(0.75), new Index(indexer, 0.3, 0.75))
     ));
     rightBumper.whenPressed(new InstantCommand(() -> drivebase.reverse()));
-    leftTrigger.whenPressed(new InstantCommand(() -> intake.setIntakeSpeed(Math.max(drivebase.getSpeed(), 0.6))));
+    leftTrigger.whileHeld(new InstantCommand(() -> intake.setIntakeSpeed(Math.max(drivebase.getSpeed(), 0.6))));
     leftTrigger.whenReleased(new InstantCommand(() -> intake.setIntakeSpeed(0)));
     aButton.whenPressed(new InstantCommand(() -> intake.extend()));
     bButton.whenPressed(new InstantCommand(() -> intake.retract()));
@@ -75,7 +90,47 @@ public class RobotContainer {
   }
   
   public Command getAutonomousCommand() {
-    return new ZeroHood(shooter);
+    var autoVoltageConstraint =
+        new DifferentialDriveVoltageConstraint(
+            new SimpleMotorFeedforward(Constants.DriveConstants.ksVolts, 
+            Constants.DriveConstants.kvVoltSecondsPerMeter, 
+            Constants.DriveConstants.kaVoltSecondsSquaredPerMeter),
+            Constants.DriveConstants.kDriveKinematics,
+            10);
+
+    TrajectoryConfig config =
+        new TrajectoryConfig(Constants.AutoConstants.kMaxSpeedMetersPerSecond, 
+        Constants.AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+            .setKinematics(Constants.DriveConstants.kDriveKinematics)
+            .addConstraint(autoVoltageConstraint);
+            
+    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
+        new Pose2d(0, 0, new Rotation2d(0)),
+        List.of(
+            new Translation2d(1, 1),
+            new Translation2d(3, 3)
+        ),
+        new Pose2d(0, 0, new Rotation2d(0)),
+        config);
+
+    RamseteCommand ramseteCommand = new RamseteCommand(
+        exampleTrajectory,
+        drivebase::getPose,
+        new RamseteController(Constants.AutoConstants.kRamseteB, Constants.AutoConstants.kRamseteZeta),
+        new SimpleMotorFeedforward(Constants.DriveConstants.ksVolts, Constants.DriveConstants.kvVoltSecondsPerMeter, Constants.DriveConstants.kaVoltSecondsSquaredPerMeter),
+        Constants.DriveConstants.kDriveKinematics,
+        drivebase::getWheelSpeeds,
+        new PIDController(Constants.DriveConstants.kPDriveVel, 0, 0),
+        new PIDController(Constants.DriveConstants.kPDriveVel, 0, 0),
+        drivebase::tankDriveVolts,
+        drivebase);
+
+    drivebase.resetOdometry(exampleTrajectory.getInitialPose());
+
+    // Set up a sequence of commands
+    return new InstantCommand(() -> drivebase.resetOdometry(exampleTrajectory.getInitialPose()), drivebase)
+        .andThen(ramseteCommand)
+        .andThen(new InstantCommand(() -> drivebase.tankDriveVolts(0, 0), drivebase));
   }
 
   public Command getTestCommand() {
