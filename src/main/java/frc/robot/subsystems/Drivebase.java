@@ -30,13 +30,10 @@ public class Drivebase extends SubsystemBase {
   private DifferentialDrive diffDrive = new DifferentialDrive(leftLeader, rightLeader);
 
   private CANEncoder leftEncoder, rightEncoder;
+  private double leftStart, rightStart;
 
   private double movementSpeed = 0;
   private int direction = 1;
-
-  private double startLeft, startRight;
-
-  private static final double wheelDiameterMeter = 0.1524;
 
   private AHRS gyro;
 
@@ -54,11 +51,11 @@ public class Drivebase extends SubsystemBase {
     leftEncoder = leftLeader.getEncoder();
     rightEncoder = rightLeader.getEncoder();
 
-    leftEncoder.setVelocityConversionFactor(Math.PI * wheelDiameterMeter);
-    rightEncoder.setVelocityConversionFactor(Math.PI * wheelDiameterMeter);
+    leftEncoder.setVelocityConversionFactor(Math.PI * DrivebaseConstants.wheelDiameterMeter);
+    rightEncoder.setVelocityConversionFactor(Math.PI * DrivebaseConstants.wheelDiameterMeter);
 
-    startLeft = leftEncoder.getPosition();
-    startRight = rightEncoder.getPosition();
+    leftStart = leftEncoder.getPosition();
+    rightStart = rightEncoder.getPosition();
 
     gyro = new AHRS(SPI.Port.kMXP);
 
@@ -84,16 +81,16 @@ public class Drivebase extends SubsystemBase {
   }
 
   public void resetEncoders() {
-    startLeft = leftEncoder.getPosition();
-    startRight = rightEncoder.getPosition();
+    leftStart = leftEncoder.getPosition();
+    rightStart = rightEncoder.getPosition();
   }
 
   public double getLeftEncoder() {
-    return leftEncoder.getPosition() - startLeft;
+    return (leftEncoder.getPosition() - leftStart) / 10.0 * DrivebaseConstants.wheelDiameterMeter * Math.PI;
   }
 
   public double getRightEncoder() {
-    return rightEncoder.getPosition() - startRight;
+    return (rightEncoder.getPosition() - rightStart) / 10.0 * DrivebaseConstants.wheelDiameterMeter * Math.PI;
   }
 
   public double getSpeed() {
@@ -123,7 +120,7 @@ public class Drivebase extends SubsystemBase {
 
   @Override
   public void periodic() {
-    odometry.update(gyro.getRotation2d(), getLeftEncoder() / 10.0 * wheelDiameterMeter * Math.PI, getRightEncoder() / 10.0 * wheelDiameterMeter * Math.PI);
+    odometry.update(gyro.getRotation2d(), getLeftEncoder(), getRightEncoder());
 
     SmartDashboard.putNumber("Left drivebase encoder", getLeftEncoder());
     SmartDashboard.putNumber("Right drivebase encoder", getRightEncoder());

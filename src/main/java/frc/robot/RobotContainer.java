@@ -15,7 +15,7 @@ import frc.robot.commands.Shoot;
 import frc.robot.commands.Index;
 import frc.robot.commands.RunTests;
 import frc.robot.Constants.ControllerConstants;
-import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.DrivebaseConstants;
 import frc.robot.Constants.AutoConstants;
 
 import java.util.List;
@@ -91,19 +91,19 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     var autoVoltageConstraint =
         new DifferentialDriveVoltageConstraint(
-            new SimpleMotorFeedforward(DriveConstants.ksVolts, 
-              DriveConstants.kvVoltSecondsPerMeter, 
-              DriveConstants.kaVoltSecondsSquaredPerMeter),
-              DriveConstants.kDriveKinematics,
+            new SimpleMotorFeedforward(DrivebaseConstants.ksVolts, 
+              DrivebaseConstants.kvVoltSecondsPerMeter, 
+              DrivebaseConstants.kaVoltSecondsSquaredPerMeter),
+              DrivebaseConstants.kDriveKinematics,
             10);
 
     TrajectoryConfig config =
         new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond, 
         AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-            .setKinematics(DriveConstants.kDriveKinematics)
+            .setKinematics(DrivebaseConstants.kDriveKinematics)
             .addConstraint(autoVoltageConstraint);
             
-    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
+    Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
         new Pose2d(0, 0, new Rotation2d(0)),
         List.of(
             new Translation2d(1, 1)
@@ -112,21 +112,20 @@ public class RobotContainer {
         config);
 
     RamseteCommand ramseteCommand = new RamseteCommand(
-        exampleTrajectory,
+      trajectory,
         drivebase::getPose,
         new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
-        new SimpleMotorFeedforward(DriveConstants.ksVolts, DriveConstants.kvVoltSecondsPerMeter, DriveConstants.kaVoltSecondsSquaredPerMeter),
-        DriveConstants.kDriveKinematics,
+        new SimpleMotorFeedforward(DrivebaseConstants.ksVolts, DrivebaseConstants.kvVoltSecondsPerMeter, DrivebaseConstants.kaVoltSecondsSquaredPerMeter),
+        DrivebaseConstants.kDriveKinematics,
         drivebase::getWheelSpeeds,
-        new PIDController(DriveConstants.kPDriveVel, 0, 0),
-        new PIDController(DriveConstants.kPDriveVel, 0, 0),
+        new PIDController(DrivebaseConstants.kPDriveVel, 0, 0),
+        new PIDController(DrivebaseConstants.kPDriveVel, 0, 0),
         drivebase::tankDriveVolts,
         drivebase);
 
-    drivebase.resetOdometry(exampleTrajectory.getInitialPose());
+    drivebase.resetOdometry(trajectory.getInitialPose());
 
-    // Set up a sequence of commands
-    return new InstantCommand(() -> drivebase.resetOdometry(exampleTrajectory.getInitialPose()), drivebase)
+    return new InstantCommand(() -> drivebase.resetOdometry(trajectory.getInitialPose()), drivebase)
         .andThen(ramseteCommand)
         .andThen(new InstantCommand(() -> drivebase.tankDriveVolts(0, 0), drivebase));
   }
