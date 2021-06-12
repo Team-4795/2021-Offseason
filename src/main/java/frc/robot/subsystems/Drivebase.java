@@ -36,7 +36,6 @@ public class Drivebase extends SubsystemBase {
 
   private double startLeft, startRight;
 
-  private static final double countsPerRevolution = 2048;
   private static final double wheelDiameterMeter = 0.1524;
 
   private AHRS gyro;
@@ -55,10 +54,8 @@ public class Drivebase extends SubsystemBase {
     leftEncoder = leftLeader.getEncoder();
     rightEncoder = rightLeader.getEncoder();
 
-    leftEncoder.setPositionConversionFactor((Math.PI * wheelDiameterMeter) / countsPerRevolution);
-    leftEncoder.setVelocityConversionFactor((Math.PI * wheelDiameterMeter) / countsPerRevolution);
-    rightEncoder.setPositionConversionFactor((Math.PI * wheelDiameterMeter) / countsPerRevolution);
-    rightEncoder.setVelocityConversionFactor((Math.PI * wheelDiameterMeter) / countsPerRevolution);
+    leftEncoder.setVelocityConversionFactor(Math.PI * wheelDiameterMeter);
+    rightEncoder.setVelocityConversionFactor(Math.PI * wheelDiameterMeter);
 
     startLeft = leftEncoder.getPosition();
     startRight = rightEncoder.getPosition();
@@ -126,7 +123,7 @@ public class Drivebase extends SubsystemBase {
 
   @Override
   public void periodic() {
-    odometry.update(gyro.getRotation2d(), leftEncoder.getPosition(), rightEncoder.getPosition());
+    odometry.update(gyro.getRotation2d(), getLeftEncoder() / 10.0 * wheelDiameterMeter * Math.PI, getRightEncoder() / 10.0 * wheelDiameterMeter * Math.PI);
 
     SmartDashboard.putNumber("Left drivebase encoder", getLeftEncoder());
     SmartDashboard.putNumber("Right drivebase encoder", getRightEncoder());

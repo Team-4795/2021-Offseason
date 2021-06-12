@@ -15,6 +15,8 @@ import frc.robot.commands.Shoot;
 import frc.robot.commands.Index;
 import frc.robot.commands.RunTests;
 import frc.robot.Constants.ControllerConstants;
+import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.AutoConstants;
 
 import java.util.List;
 
@@ -22,7 +24,6 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.controller.RamseteController;
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
-import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -41,8 +42,6 @@ import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConst
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 
 public class RobotContainer {
-  private final PowerDistributionPanel PDP = new PowerDistributionPanel(0);
-
   private final Drivebase drivebase = new Drivebase();
 
   private final Shooter shooter = new Shooter();
@@ -92,23 +91,22 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     var autoVoltageConstraint =
         new DifferentialDriveVoltageConstraint(
-            new SimpleMotorFeedforward(Constants.DriveConstants.ksVolts, 
-            Constants.DriveConstants.kvVoltSecondsPerMeter, 
-            Constants.DriveConstants.kaVoltSecondsSquaredPerMeter),
-            Constants.DriveConstants.kDriveKinematics,
+            new SimpleMotorFeedforward(DriveConstants.ksVolts, 
+              DriveConstants.kvVoltSecondsPerMeter, 
+              DriveConstants.kaVoltSecondsSquaredPerMeter),
+              DriveConstants.kDriveKinematics,
             10);
 
     TrajectoryConfig config =
-        new TrajectoryConfig(Constants.AutoConstants.kMaxSpeedMetersPerSecond, 
-        Constants.AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-            .setKinematics(Constants.DriveConstants.kDriveKinematics)
+        new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond, 
+        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+            .setKinematics(DriveConstants.kDriveKinematics)
             .addConstraint(autoVoltageConstraint);
             
     Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
         new Pose2d(0, 0, new Rotation2d(0)),
         List.of(
-            new Translation2d(1, 1),
-            new Translation2d(3, 3)
+            new Translation2d(1, 1)
         ),
         new Pose2d(0, 0, new Rotation2d(0)),
         config);
@@ -116,12 +114,12 @@ public class RobotContainer {
     RamseteCommand ramseteCommand = new RamseteCommand(
         exampleTrajectory,
         drivebase::getPose,
-        new RamseteController(Constants.AutoConstants.kRamseteB, Constants.AutoConstants.kRamseteZeta),
-        new SimpleMotorFeedforward(Constants.DriveConstants.ksVolts, Constants.DriveConstants.kvVoltSecondsPerMeter, Constants.DriveConstants.kaVoltSecondsSquaredPerMeter),
-        Constants.DriveConstants.kDriveKinematics,
+        new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
+        new SimpleMotorFeedforward(DriveConstants.ksVolts, DriveConstants.kvVoltSecondsPerMeter, DriveConstants.kaVoltSecondsSquaredPerMeter),
+        DriveConstants.kDriveKinematics,
         drivebase::getWheelSpeeds,
-        new PIDController(Constants.DriveConstants.kPDriveVel, 0, 0),
-        new PIDController(Constants.DriveConstants.kPDriveVel, 0, 0),
+        new PIDController(DriveConstants.kPDriveVel, 0, 0),
+        new PIDController(DriveConstants.kPDriveVel, 0, 0),
         drivebase::tankDriveVolts,
         drivebase);
 
@@ -134,7 +132,7 @@ public class RobotContainer {
   }
 
   public Command getTestCommand() {
-    return new RunTests(PDP, drivebase, intake, indexer, shooter);
+    return new RunTests(drivebase, intake, indexer, shooter);
   }
 
   private double applyDeadband(double value) {

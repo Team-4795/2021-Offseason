@@ -36,13 +36,13 @@ public final class Constants {
 	}
 
 	public static final class ControllerConstants {
-		public static final int LEFT_TRIGGER = 0;
+		public static final int LEFT_TRIGGER = 2;
 		public static final int RIGHT_TRIGGER = 3;
-		public static final int LEFT_BUMPER = 5;
-		public static final int RIGHT_BUMPER = 6;
+		public static final int LEFT_BUMPER = 4;
+		public static final int RIGHT_BUMPER = 5;
 		public static final int LEFT_JOYSTICK = 1;
 		public static final int RIGHT_JOYSTICK = 4;
-		public static final int A_BUTTON = 0;
+		public static final int A_BUTTON = 1;
 		public static final int B_BUTTON = 0;
 	
 		public static final double JOYSTICK_DEADBAND = 0.05;
@@ -60,8 +60,8 @@ public final class Constants {
 	}
 	
 	public static final class AutoConstants {
-		public static final double kMaxSpeedMetersPerSecond = 1;
-		public static final double kMaxAccelerationMetersPerSecondSquared = 1;
+		public static final double kMaxSpeedMetersPerSecond = 0.5;
+		public static final double kMaxAccelerationMetersPerSecondSquared = 0.5;
 		
 		public static final double kRamseteB = 2;
 		public static final double kRamseteZeta = 0.7;
