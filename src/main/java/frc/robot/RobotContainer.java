@@ -53,10 +53,6 @@ public class RobotContainer {
   private final Joystick controller = new Joystick(0);
 
   public RobotContainer() {
-    configureButtonBindings();
-  }
-
-  private void configureButtonBindings() {
     drivebase.setDefaultCommand(new EastDrive(
       drivebase,
       () -> applyDeadband(-controller.getRawAxis(ControllerConstants.LEFT_JOYSTICK)),
@@ -64,7 +60,11 @@ public class RobotContainer {
       () -> applyDeadband((controller.getRawAxis(ControllerConstants.RIGHT_TRIGGER) + 1) / 2)
     ));
     shooter.setDefaultCommand(new ZeroHood(shooter));
+    
+    configureButtonBindings();
+  }
 
+  private void configureButtonBindings() {
     JoystickButton leftBumper = new JoystickButton(controller, ControllerConstants.LEFT_BUMPER);
     JoystickButton rightBumper = new JoystickButton(controller, ControllerConstants.RIGHT_BUMPER);
     JoystickButton leftTrigger = new JoystickButton(controller, ControllerConstants.LEFT_TRIGGER);
@@ -73,8 +73,8 @@ public class RobotContainer {
 
     leftBumper.whileHeld(new ParallelCommandGroup(
       new TurnToGoal(drivebase),
-      new Shoot(shooter, 5500),
-      new SequentialCommandGroup(new WaitCommand(0.75), new Index(indexer, 0.3, 0.75))
+      new Shoot(shooter),
+      new SequentialCommandGroup(new WaitCommand(1), new Index(indexer))
     ));
     rightBumper.whenPressed(new InstantCommand(() -> drivebase.reverse()));
     leftTrigger.whileHeld(new InstantCommand(() -> intake.setIntakeSpeed(Math.max(drivebase.getSpeed(), 0.6))));
@@ -90,38 +90,38 @@ public class RobotContainer {
   
   public Command getAutonomousCommand() {
     var autoVoltageConstraint =
-        new DifferentialDriveVoltageConstraint(
-            new SimpleMotorFeedforward(DrivebaseConstants.ksVolts, 
-              DrivebaseConstants.kvVoltSecondsPerMeter, 
-              DrivebaseConstants.kaVoltSecondsSquaredPerMeter),
-              DrivebaseConstants.kDriveKinematics,
-            10);
+      new DifferentialDriveVoltageConstraint(
+          new SimpleMotorFeedforward(DrivebaseConstants.ksVolts, 
+            DrivebaseConstants.kvVoltSecondsPerMeter, 
+            DrivebaseConstants.kaVoltSecondsSquaredPerMeter),
+            DrivebaseConstants.kDriveKinematics,
+          10);
 
     TrajectoryConfig config =
-        new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond, 
-        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-            .setKinematics(DrivebaseConstants.kDriveKinematics)
-            .addConstraint(autoVoltageConstraint);
+      new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond, 
+      AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+          .setKinematics(DrivebaseConstants.kDriveKinematics)
+          .addConstraint(autoVoltageConstraint);
             
     Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
-        new Pose2d(0, 0, new Rotation2d(0)),
-        List.of(
-            new Translation2d(1, 1)
-        ),
-        new Pose2d(0, 0, new Rotation2d(0)),
-        config);
+      new Pose2d(0, 0, new Rotation2d(0)),
+      List.of(
+        new Translation2d(1, 1)
+      ),
+      new Pose2d(0, 0, new Rotation2d(0)),
+      config);
 
     RamseteCommand ramseteCommand = new RamseteCommand(
       trajectory,
-        drivebase::getPose,
-        new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
-        new SimpleMotorFeedforward(DrivebaseConstants.ksVolts, DrivebaseConstants.kvVoltSecondsPerMeter, DrivebaseConstants.kaVoltSecondsSquaredPerMeter),
-        DrivebaseConstants.kDriveKinematics,
-        drivebase::getWheelSpeeds,
-        new PIDController(DrivebaseConstants.kPDriveVel, 0, 0),
-        new PIDController(DrivebaseConstants.kPDriveVel, 0, 0),
-        drivebase::tankDriveVolts,
-        drivebase);
+      drivebase::getPose,
+      new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
+      new SimpleMotorFeedforward(DrivebaseConstants.ksVolts, DrivebaseConstants.kvVoltSecondsPerMeter, DrivebaseConstants.kaVoltSecondsSquaredPerMeter),
+      DrivebaseConstants.kDriveKinematics,
+      drivebase::getWheelSpeeds,
+      new PIDController(DrivebaseConstants.kPDriveVel, 0, 0),
+      new PIDController(DrivebaseConstants.kPDriveVel, 0, 0),
+      drivebase::tankDriveVolts,
+      drivebase);
 
     drivebase.resetOdometry(trajectory.getInitialPose());
 

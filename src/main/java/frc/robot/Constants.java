@@ -14,6 +14,8 @@ public final class Constants {
 		public static final int HOOD_SPARK = 11;
 
 		public static final int ACCELERATOR_SPARK = 8;
+
+		public static final double encoderRotationsPerHoodDegree = -1.093792;
 	}
 
 	public static final class IntakeConstants {

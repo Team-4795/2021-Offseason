@@ -9,34 +9,26 @@ import frc.robot.subsystems.Indexer;
 
 public class Index extends CommandBase {
   private Indexer indexer;
-  private double indexerSpeed;
-  private double selectorSpeed;
 
-  public Index(Indexer indexer, double indexerSpeed, double selectorSpeed) {
+  public Index(Indexer indexer) {
     this.indexer = indexer;
-    this.indexerSpeed = indexerSpeed;
-    this.selectorSpeed = selectorSpeed;
     
     addRequirements(indexer);
   }
 
-  // Called when the command is initially scheduled.
   @Override
   public void initialize() {}
 
-  // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    indexer.setIndexerSpeed(indexerSpeed, selectorSpeed);
+    indexer.setIndexerSpeed(0.3, 0.75);
   }
 
-  // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
     indexer.setIndexerSpeed(0.0, 0.0);
   }
 
-  // Returns true when the command should end.
   @Override
   public boolean isFinished() {
     return false;

@@ -30,8 +30,6 @@ public class Shooter extends SubsystemBase {
 
   private CANDigitalInput hoodLimit;
 
-  private final static double encoderRotationsPerHoodDegree = -1.093792;  
-
   private CANPIDController acceleratorController; 
   private CANPIDController hoodController;
 
@@ -43,8 +41,8 @@ public class Shooter extends SubsystemBase {
     leaderFlywheel.configFactoryDefault();
 
     acceleratorController = acceleratorWheel.getPIDController();
-
     hoodController = hood.getPIDController();
+
     hoodEncoder = hood.getEncoder();
     hoodEncoder.setPositionConversionFactor(-1);
     hoodEncoder.setPosition(0);
@@ -62,22 +60,14 @@ public class Shooter extends SubsystemBase {
     followerFlywheel.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, 0, 0);
     
     acceleratorController.setP(0.01);
-    acceleratorController.setI(0);
-    acceleratorController.setD(0);
-    acceleratorController.setIZone(0);
     acceleratorController.setFF(0.1);
     acceleratorController.setOutputRange(-1, 1);
 
     hoodController.setP(0.2);
-    hoodController.setI(0);
-    hoodController.setD(0);
-    hoodController.setIZone(0);
     hoodController.setOutputRange(-0.5, 0.5);
 
     leaderFlywheel.config_kF(0, 0.0485, 0);
     leaderFlywheel.config_kP(0, 0.016, 0);
-		leaderFlywheel.config_kI(0, 0, 0);
-    leaderFlywheel.config_kD(0, 0, 0);
   }
 
   public void resetHoodEncoder() {
@@ -89,14 +79,14 @@ public class Shooter extends SubsystemBase {
   }
 
   public void setHoodAngle(double degrees) {
-    hoodController.setReference(degrees * encoderRotationsPerHoodDegree, ControlType.kPosition);
+    hoodController.setReference(degrees * ShooterConstants.encoderRotationsPerHoodDegree, ControlType.kPosition);
   }
 
   public boolean isHoodRetracted() {
     return hoodLimit.get();
   }
 
-  public void setShooter(double speed) {
+  public void setShooterSpeed(double speed) {
     leaderFlywheel.set(ControlMode.PercentOutput, speed);
     acceleratorWheel.set(speed);
   }
@@ -107,10 +97,6 @@ public class Shooter extends SubsystemBase {
     // 1 / 2048 * 60
     double speed_FalconUnits = speed / (600.0) * 2048.0;
     leaderFlywheel.set(TalonFXControlMode.Velocity, speed_FalconUnits);
-    acceleratorWheel.set(speed / 6000.0);
-  }
-
-  public void setAcceleratorRPM(double speed) {
     acceleratorController.setReference(speed, ControlType.kVelocity);
   }
 
@@ -123,6 +109,6 @@ public class Shooter extends SubsystemBase {
     SmartDashboard.putBoolean("limit switch", hoodLimit.get());
     SmartDashboard.putNumber("shooter speed", (leaderFlywheel.getSelectedSensorVelocity()) / 2048.0 * 600);
     SmartDashboard.putNumber("hood encoder ticks", hoodEncoder.getPosition());
-    SmartDashboard.putNumber("hood angle", hoodEncoder.getPosition() / encoderRotationsPerHoodDegree);
+    SmartDashboard.putNumber("hood angle", hoodEncoder.getPosition() / ShooterConstants.encoderRotationsPerHoodDegree);
   }
 }

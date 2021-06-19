@@ -36,7 +36,6 @@ public class RunTests extends CommandBase {
 
     indexer.setIndexerSpeed(0.25, 0.25);
 
-    shooter.setAcceleratorRPM(1000);
     shooter.setShooterRPM(1000);
   }
 
@@ -51,7 +50,7 @@ public class RunTests extends CommandBase {
 
     indexer.setIndexerSpeed(0, 0);
 
-    shooter.setShooter(0);
+    shooter.setShooterSpeed(0);
   }
 
   @Override
