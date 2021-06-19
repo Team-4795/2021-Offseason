@@ -57,7 +57,8 @@ public class EastDrive extends CommandBase {
         double adjustment = (System.currentTimeMillis() - lastUpdate) / 500.0;
         
         speed = Math.min(Math.abs(speed) + adjustment, Math.abs(acceleration) * (1.0 - minSpeed) + minSpeed);
-        speed *= Math.signum(acceleration) * throttle;
+        speed = Math.max(speed * throttle, minSpeed);
+        speed *= Math.signum(acceleration);
       }
     } else {
       speed = 0;

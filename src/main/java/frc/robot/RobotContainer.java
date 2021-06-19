@@ -57,7 +57,7 @@ public class RobotContainer {
       drivebase,
       () -> applyDeadband(-controller.getRawAxis(ControllerConstants.LEFT_JOYSTICK)),
       () -> applyDeadband(-controller.getRawAxis(ControllerConstants.RIGHT_JOYSTICK)),
-      () -> applyDeadband((controller.getRawAxis(ControllerConstants.RIGHT_TRIGGER) + 1) / 2)
+      () -> applyDeadband(controller.getRawAxis(ControllerConstants.RIGHT_TRIGGER))
     ));
     shooter.setDefaultCommand(new ZeroHood(shooter));
     
