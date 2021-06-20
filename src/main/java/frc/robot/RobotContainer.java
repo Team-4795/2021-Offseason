@@ -13,6 +13,7 @@ import frc.robot.commands.ZeroHood;
 import frc.robot.commands.TurnToGoal;
 import frc.robot.commands.Shoot;
 import frc.robot.commands.Index;
+import frc.robot.commands.Unjam;
 import frc.robot.commands.RunTests;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.Constants.DrivebaseConstants;
@@ -59,6 +60,7 @@ public class RobotContainer {
       () -> applyDeadband(-controller.getRawAxis(ControllerConstants.RIGHT_JOYSTICK)),
       () -> applyDeadband(controller.getRawAxis(ControllerConstants.RIGHT_TRIGGER))
     ));
+    indexer.setDefaultCommand(new Unjam(indexer));
     shooter.setDefaultCommand(new ZeroHood(shooter));
     
     configureButtonBindings();
