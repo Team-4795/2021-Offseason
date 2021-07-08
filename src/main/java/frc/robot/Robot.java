@@ -63,7 +63,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    if(getSecondsRemaining() < 15 && getSecondsRemaining() > 13) {
+    if(getSecondsRemaining() < 10 && getSecondsRemaining() > 8) {
       robotContainer.setRumble(1);
     } else {
       robotContainer.setRumble(0);

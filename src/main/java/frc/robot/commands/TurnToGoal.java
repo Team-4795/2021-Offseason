@@ -7,13 +7,15 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpiutil.math.MathUtil;
 import frc.robot.subsystems.Drivebase;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.subsystems.VisionModule;
 
 public class TurnToGoal extends CommandBase {
   private Drivebase drivebase;
+  private VisionModule vision;
 
-  public TurnToGoal(Drivebase drivebase) {
+  public TurnToGoal(Drivebase drivebase, VisionModule vision) {
     this.drivebase = drivebase;
+    this.vision = vision;
 
     addRequirements(drivebase);
   }
@@ -23,10 +25,14 @@ public class TurnToGoal extends CommandBase {
 
   @Override
   public void execute() {
-    double turnSpeed = SmartDashboard.getNumber("goal_angle", 0) / 20.0;
+    if(!vision.hasTarget()) return;
+
+    double angle = vision.getTargetAngle();
+    double turnSpeed = angle / 20.0;
+    
     turnSpeed = MathUtil.clamp(Math.max(Math.abs(turnSpeed), 0.1) * Math.signum(turnSpeed), -0.8, 0.8);
 
-    drivebase.curvatureDrive(0, turnSpeed, true);
+    if(angle > 0.5) drivebase.curvatureDrive(0, turnSpeed, true);
   }
 
   @Override

@@ -9,38 +9,45 @@ import frc.robot.subsystems.Drivebase;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.VisionModule;
 
 public class RunTests extends CommandBase {
   private Drivebase drivebase;
   private Intake intake;
   private Indexer indexer;
   private Shooter shooter;
+  private VisionModule visionModule;
   
-  public RunTests(Drivebase drivebase, Intake intake, Indexer indexer, Shooter shooter) {
+  public RunTests(Drivebase drivebase, Intake intake, Indexer indexer, Shooter shooter, VisionModule visionModule) {
     this.drivebase = drivebase;
     this.intake = intake;
     this.indexer = indexer;
     this.shooter = shooter;
+    this.visionModule = visionModule;
 
     addRequirements(drivebase);
     addRequirements(intake);
     addRequirements(indexer);
     addRequirements(shooter);
+    addRequirements(visionModule);
   }
   
   @Override
-  public void initialize() {
+  public void initialize() {}
+
+  @Override
+  public void execute() {
     drivebase.curvatureDrive(0.25, 0, false);
 
     intake.setIntakeSpeed(0.5);
 
     indexer.setIndexerSpeed(0.25, 0.25);
 
+    shooter.setHoodAngle(15);
     shooter.setShooterRPM(1000);
-  }
 
-  @Override
-  public void execute() {}
+    visionModule.startTracking();
+  }
 
   @Override
   public void end(boolean interrupted) {
@@ -51,6 +58,8 @@ public class RunTests extends CommandBase {
     indexer.setIndexerSpeed(0, 0);
 
     shooter.setShooterSpeed(0);
+
+    visionModule.stopTracking();
   }
 
   @Override

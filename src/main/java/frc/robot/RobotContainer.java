@@ -5,6 +5,7 @@
 package frc.robot;
 
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.VisionModule;
 import frc.robot.subsystems.Drivebase;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
@@ -32,10 +33,11 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
-
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
@@ -50,6 +52,8 @@ public class RobotContainer {
   private final Indexer indexer = new Indexer();
 
   private final Intake intake = new Intake();
+
+  private final VisionModule visionModule = new VisionModule();
 
   private final Joystick controller = new Joystick(0);
 
@@ -72,17 +76,33 @@ public class RobotContainer {
     JoystickButton leftTrigger = new JoystickButton(controller, ControllerConstants.LEFT_TRIGGER);
     JoystickButton aButton = new JoystickButton(controller, ControllerConstants.A_BUTTON);
     JoystickButton bButton = new JoystickButton(controller, ControllerConstants.B_BUTTON);
+    JoystickButton xButton = new JoystickButton(controller, ControllerConstants.X_BUTTON);
+    POVButton up = new POVButton(controller, ControllerConstants.UP);
+    POVButton down = new POVButton(controller, ControllerConstants.DOWN);
+
+    xButton.whileHeld(new ParallelCommandGroup(
+      new Shoot(shooter, visionModule, false),
+      new SequentialCommandGroup(new WaitCommand(1.5), new Index(indexer))
+    ));
 
     leftBumper.whileHeld(new ParallelCommandGroup(
-      new TurnToGoal(drivebase),
-      new Shoot(shooter),
-      new SequentialCommandGroup(new WaitCommand(1), new Index(indexer))
+      new InstantCommand(() -> visionModule.startTracking()),
+      new TurnToGoal(drivebase, visionModule),
+      new Shoot(shooter, visionModule, true),
+      new SequentialCommandGroup(new WaitCommand(1.5), new Index(indexer))
     ));
+    leftBumper.whenReleased(new InstantCommand(() -> visionModule.stopTracking()));
+
     rightBumper.whenPressed(new InstantCommand(() -> drivebase.reverse()));
+
     leftTrigger.whileHeld(new InstantCommand(() -> intake.setIntakeSpeed(Math.max(drivebase.getSpeed(), 0.6))));
     leftTrigger.whenReleased(new InstantCommand(() -> intake.setIntakeSpeed(0)));
+
     aButton.whenPressed(new InstantCommand(() -> intake.extend()));
     bButton.whenPressed(new InstantCommand(() -> intake.retract()));
+
+    up.whenPressed(() -> SmartDashboard.putNumber("goal_distance", 0));
+    down.whenPressed(() -> SmartDashboard.putNumber("goal_distance", 4.5));
   }
 
   public void setRumble(double rumble) {
@@ -133,7 +153,7 @@ public class RobotContainer {
   }
 
   public Command getTestCommand() {
-    return new RunTests(drivebase, intake, indexer, shooter);
+    return new RunTests(drivebase, intake, indexer, shooter, visionModule);
   }
 
   private double applyDeadband(double value) {

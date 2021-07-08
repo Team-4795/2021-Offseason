@@ -4,14 +4,14 @@
 
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.PWMSparkMax;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 
 public class Intake extends SubsystemBase {
-  private Spark intakeMotor = new Spark(IntakeConstants.INTAKE_SPARK); 
+  private PWMSparkMax intakeMotor = new PWMSparkMax(IntakeConstants.INTAKE_SPARK); 
   private DoubleSolenoid solenoid = new DoubleSolenoid(IntakeConstants.FORWARD_SOLENOID, IntakeConstants.REVERSE_SOLENOID);
   
   public Intake() {}

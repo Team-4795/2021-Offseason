@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.wpilibj.util.Units;
 
 public final class Constants {
 	public static final class ShooterConstants {
@@ -43,9 +44,15 @@ public final class Constants {
 		public static final double kPDriveVel = 0.085;
 	
 		public static final double kTrackwidthMeters = 0.142072613;
-		public static final double wheelDiameterMeters = 0.1524;
+		public static final double wheelDiameterMeters = Units.inchesToMeters(6);
 
 		public static final DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackwidthMeters);
+	}
+
+	public static final class VisionConstants {
+		public static final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(12);
+		public static final double TARGET_HEIGHT_METERS = Units.feetToMeters(82);
+		public static final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(20);
 	}
 
 	public static final class AutoConstants {
@@ -59,12 +66,19 @@ public final class Constants {
 	public static final class ControllerConstants {
 		public static final int LEFT_TRIGGER = 2;
 		public static final int RIGHT_TRIGGER = 3;
+
 		public static final int LEFT_BUMPER = 4;
 		public static final int RIGHT_BUMPER = 6;
+
 		public static final int LEFT_JOYSTICK = 1;
 		public static final int RIGHT_JOYSTICK = 4;
+
 		public static final int A_BUTTON = 1;
 		public static final int B_BUTTON = 2;
+		public static final int X_BUTTON = 2;
+
+		public static final int UP = 0;
+		public static final int DOWN = 180;
 	
 		public static final double JOYSTICK_DEADBAND = 0.05;
 	}

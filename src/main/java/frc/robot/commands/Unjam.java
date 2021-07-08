@@ -21,7 +21,7 @@ public class Unjam extends CommandBase {
 
   @Override
   public void execute() {
-    indexer.setIndexerSpeed(0, -0.2);
+    indexer.setIndexerSpeed(0, -0.15);
   }
 
   @Override
