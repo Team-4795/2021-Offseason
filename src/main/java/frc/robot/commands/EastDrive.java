@@ -52,13 +52,12 @@ public class EastDrive extends CommandBase {
       lastAcceleration = System.currentTimeMillis();
 
       if(Math.signum(speed) != Math.signum(acceleration)) {
-        speed = minSpeed * Math.signum(acceleration);
+        speed = Math.copySign(minSpeed, acceleration);
       } else {
         double adjustment = (System.currentTimeMillis() - lastUpdate) / 500.0;
         
         speed = Math.min(Math.abs(speed) + adjustment, Math.abs(acceleration) * (1.0 - minSpeed) + minSpeed);
-        speed = Math.max(speed * throttle, minSpeed);
-        speed *= Math.signum(acceleration);
+        speed = Math.copySign(Math.max(speed * throttle, minSpeed), acceleration);
       }
     } else {
       speed = 0;

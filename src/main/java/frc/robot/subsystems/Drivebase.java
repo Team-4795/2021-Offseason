@@ -125,7 +125,7 @@ public class Drivebase extends SubsystemBase {
 
     odometry.update(gyro.getRotation2d(), leftDistance, rightDistance);
 
-    SmartDashboard.putNumber("Left drivebase encoder", getLeftEncoder());
-    SmartDashboard.putNumber("Right drivebase encoder", getRightEncoder());
+    SmartDashboard.putNumber("Left distance", leftDistance);
+    SmartDashboard.putNumber("Right distance", rightDistance);
   }
 }

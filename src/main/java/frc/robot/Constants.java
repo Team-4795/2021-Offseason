@@ -37,19 +37,21 @@ public final class Constants {
 		public static final int RIGHT_LEADER = 2;
 		public static final int RIGHT_FOLLOWER = 3;
 
-		public static final double ksVolts = 0.929;
-		public static final double kvVoltSecondsPerMeter = 6.33;
+		public static final double ksVolts = 0.138;
+		public static final double kvVoltSecondsPerMeter = 0.798;
 		public static final double kaVoltSecondsSquaredPerMeter = 0.0389;
 	
 		public static final double kPDriveVel = 0.085;
 	
-		public static final double kTrackwidthMeters = 0.142072613;
+		public static final double kTrackwidthMeters = Units.feetToMeters(2.34);
 		public static final double wheelDiameterMeters = Units.inchesToMeters(6);
 
 		public static final DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(kTrackwidthMeters);
 	}
 
 	public static final class VisionConstants {
+		public static final String CAMERA_NAME = "mmal_service_16.1";
+
 		public static final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(12);
 		public static final double TARGET_HEIGHT_METERS = Units.feetToMeters(82);
 		public static final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(20);
@@ -67,7 +69,7 @@ public final class Constants {
 		public static final int LEFT_TRIGGER = 2;
 		public static final int RIGHT_TRIGGER = 3;
 
-		public static final int LEFT_BUMPER = 4;
+		public static final int LEFT_BUMPER = 5;
 		public static final int RIGHT_BUMPER = 6;
 
 		public static final int LEFT_JOYSTICK = 1;
@@ -75,7 +77,7 @@ public final class Constants {
 
 		public static final int A_BUTTON = 1;
 		public static final int B_BUTTON = 2;
-		public static final int X_BUTTON = 2;
+		public static final int X_BUTTON = 3;
 
 		public static final int UP = 0;
 		public static final int DOWN = 180;

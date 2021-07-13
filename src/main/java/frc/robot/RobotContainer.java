@@ -13,8 +13,6 @@ import frc.robot.commands.EastDrive;
 import frc.robot.commands.ZeroHood;
 import frc.robot.commands.TurnToGoal;
 import frc.robot.commands.Shoot;
-import frc.robot.commands.Index;
-import frc.robot.commands.Unjam;
 import frc.robot.commands.RunTests;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.Constants.DrivebaseConstants;
@@ -31,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
@@ -43,6 +42,7 @@ import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 
 public class RobotContainer {
   private final Drivebase drivebase = new Drivebase();
@@ -64,7 +64,7 @@ public class RobotContainer {
       () -> applyDeadband(-controller.getRawAxis(ControllerConstants.RIGHT_JOYSTICK)),
       () -> applyDeadband(controller.getRawAxis(ControllerConstants.RIGHT_TRIGGER))
     ));
-    indexer.setDefaultCommand(new Unjam(indexer));
+    indexer.setDefaultCommand(new RunCommand(() -> indexer.setIndexerSpeed(0, -0.15), indexer));
     shooter.setDefaultCommand(new ZeroHood(shooter));
     
     configureButtonBindings();
@@ -80,26 +80,41 @@ public class RobotContainer {
     POVButton up = new POVButton(controller, ControllerConstants.UP);
     POVButton down = new POVButton(controller, ControllerConstants.DOWN);
 
-    xButton.whileHeld(new ParallelCommandGroup(
+    leftBumper.whenHeld(
+      new ParallelCommandGroup(
+        new InstantCommand(visionModule::startTracking),
+        new TurnToGoal(drivebase, visionModule),
+        new Shoot(shooter, visionModule, true),
+        new SequentialCommandGroup(
+          new WaitCommand(1.5),
+          new StartEndCommand(
+            () -> indexer.setIndexerSpeed(0.3, 0.75),
+            () -> indexer.setIndexerSpeed(0, 0),
+            indexer
+          )
+        )
+      ).andThen(visionModule::stopTracking)
+    );
+
+    xButton.whenHeld(new ParallelCommandGroup(
       new Shoot(shooter, visionModule, false),
-      new SequentialCommandGroup(new WaitCommand(1.5), new Index(indexer))
+      new SequentialCommandGroup(
+        new WaitCommand(1.5),
+        new StartEndCommand(
+          () -> indexer.setIndexerSpeed(0.3, 0.75),
+          () -> indexer.setIndexerSpeed(0, 0),
+          indexer
+        )
+      )
     ));
 
-    leftBumper.whileHeld(new ParallelCommandGroup(
-      new InstantCommand(() -> visionModule.startTracking()),
-      new TurnToGoal(drivebase, visionModule),
-      new Shoot(shooter, visionModule, true),
-      new SequentialCommandGroup(new WaitCommand(1.5), new Index(indexer))
-    ));
-    leftBumper.whenReleased(new InstantCommand(() -> visionModule.stopTracking()));
+    rightBumper.whenPressed(drivebase::reverse);
 
-    rightBumper.whenPressed(new InstantCommand(() -> drivebase.reverse()));
+    leftTrigger.whileHeld(() -> intake.setIntakeSpeed(Math.max(drivebase.getSpeed(), 0.6)));
+    leftTrigger.whenReleased(() -> intake.setIntakeSpeed(0));
 
-    leftTrigger.whileHeld(new InstantCommand(() -> intake.setIntakeSpeed(Math.max(drivebase.getSpeed(), 0.6))));
-    leftTrigger.whenReleased(new InstantCommand(() -> intake.setIntakeSpeed(0)));
-
-    aButton.whenPressed(new InstantCommand(() -> intake.extend()));
-    bButton.whenPressed(new InstantCommand(() -> intake.retract()));
+    aButton.whenPressed(intake::retract);
+    bButton.whenPressed(intake::extend);
 
     up.whenPressed(() -> SmartDashboard.putNumber("goal_distance", 0));
     down.whenPressed(() -> SmartDashboard.putNumber("goal_distance", 4.5));
