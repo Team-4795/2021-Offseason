@@ -24,16 +24,13 @@ public class Shoot extends CommandBase {
   }
 
   @Override
-  public void initialize() {}
-
-  @Override
   public void execute() {
     shooter.setShooterRPM(5500);
 
     if(useCV && vision.hasTarget()) {
       shooter.setHoodAngle(MathUtil.clamp(vision.getTargetDistance() * 3.28 + 8.0, 0, 36));
     } else {
-      shooter.setHoodAngle(MathUtil.clamp(SmartDashboard.getNumber("goal_distance", 4.5) * 3.28 + 8.0, 0, 36));
+      shooter.setHoodAngle(SmartDashboard.getNumber("hood_preset", 22));
     }
   }
 

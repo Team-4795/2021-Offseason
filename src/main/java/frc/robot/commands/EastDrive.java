@@ -66,7 +66,7 @@ public class EastDrive extends CommandBase {
     if(speed == 0) {
       double transitionRamp = MathUtil.clamp((System.currentTimeMillis() - lastAcceleration) / 500.0, 0.5, 1.0);
 
-      rotation *= Math.max(throttle, 0.4) * transitionRamp * 0.6;
+      rotation *= Math.max(throttle, 0.4) * transitionRamp * 0.4;
 
       m_drivetrain.curvatureDrive(speed, rotation, true);
     } else {

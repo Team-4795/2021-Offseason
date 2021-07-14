@@ -13,8 +13,6 @@ import frc.robot.Constants.IntakeConstants;
 public class Intake extends SubsystemBase {
   private PWMSparkMax intakeMotor = new PWMSparkMax(IntakeConstants.INTAKE_SPARK); 
   private DoubleSolenoid solenoid = new DoubleSolenoid(IntakeConstants.FORWARD_SOLENOID, IntakeConstants.REVERSE_SOLENOID);
-  
-  public Intake() {}
 
   public void setIntakeSpeed(double speed) {
     intakeMotor.set(speed);
@@ -27,7 +25,4 @@ public class Intake extends SubsystemBase {
   public void retract() {
     solenoid.set(Value.kReverse);
   }
-
-  @Override
-  public void periodic() {}
 }

@@ -45,7 +45,6 @@ public class Shooter extends SubsystemBase {
 
     hoodEncoder = hood.getEncoder();
     hoodEncoder.setPositionConversionFactor(-1);
-    hoodEncoder.setPosition(0);
 
     hoodLimit = hood.getForwardLimitSwitch(LimitSwitchPolarity.kNormallyOpen);
 

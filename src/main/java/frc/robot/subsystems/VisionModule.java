@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems;
 
-import org.photonvision.LEDMode;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
 
@@ -18,18 +17,6 @@ public class VisionModule extends SubsystemBase {
   private boolean hasTarget = false;
   private double targetDistance = 0;
   private double targetAngle = 0;
-  
-  public VisionModule() {
-    camera.setLED(LEDMode.kOff);
-  }
-
-  public void startTracking() {
-    camera.setLED(LEDMode.kOn);
-  }
-
-  public void stopTracking() {
-    camera.setLED(LEDMode.kOff);
-  }
 
   public boolean hasTarget() {
     return hasTarget;

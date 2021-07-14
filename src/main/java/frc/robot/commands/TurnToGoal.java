@@ -21,9 +21,6 @@ public class TurnToGoal extends CommandBase {
   }
 
   @Override
-  public void initialize() {}
-
-  @Override
   public void execute() {
     if(!vision.hasTarget()) return;
 
@@ -38,9 +35,6 @@ public class TurnToGoal extends CommandBase {
       drivebase.curvatureDrive(0, 0, false);
     }
   }
-
-  @Override
-  public void end(boolean interrupted) {}
 
   @Override
   public boolean isFinished() {

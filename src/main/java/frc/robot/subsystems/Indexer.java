@@ -22,7 +22,4 @@ public class Indexer extends SubsystemBase {
     indexerMotor.set(VictorSPXControlMode.PercentOutput, indexerSpeed);
     selectorMotor.set(VictorSPXControlMode.PercentOutput, selectorSpeed);
   }
-
-  @Override
-  public void periodic() {}
 }

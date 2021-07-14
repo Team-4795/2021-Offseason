@@ -15,33 +15,18 @@ import frc.robot.commands.TurnToGoal;
 import frc.robot.commands.Shoot;
 import frc.robot.commands.RunTests;
 import frc.robot.Constants.ControllerConstants;
-import frc.robot.Constants.DrivebaseConstants;
-import frc.robot.Constants.AutoConstants;
-
-import java.util.List;
 
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.controller.PIDController;
-import edu.wpi.first.wpilibj.controller.RamseteController;
-import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
-import edu.wpi.first.wpilibj.geometry.Pose2d;
-import edu.wpi.first.wpilibj.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.geometry.Translation2d;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.trajectory.Trajectory;
-import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
-import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
-import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
-import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 
 public class RobotContainer {
@@ -73,51 +58,68 @@ public class RobotContainer {
   private void configureButtonBindings() {
     JoystickButton leftBumper = new JoystickButton(controller, ControllerConstants.LEFT_BUMPER);
     JoystickButton rightBumper = new JoystickButton(controller, ControllerConstants.RIGHT_BUMPER);
-    JoystickButton leftTrigger = new JoystickButton(controller, ControllerConstants.LEFT_TRIGGER);
+    Trigger leftTrigger = new Trigger(() -> controller.getRawAxis(2) > ControllerConstants.JOYSTICK_DEADBAND);
     JoystickButton aButton = new JoystickButton(controller, ControllerConstants.A_BUTTON);
     JoystickButton bButton = new JoystickButton(controller, ControllerConstants.B_BUTTON);
     JoystickButton xButton = new JoystickButton(controller, ControllerConstants.X_BUTTON);
     POVButton up = new POVButton(controller, ControllerConstants.UP);
     POVButton down = new POVButton(controller, ControllerConstants.DOWN);
 
-    leftBumper.whenHeld(
-      new ParallelCommandGroup(
-        new InstantCommand(visionModule::startTracking),
-        new TurnToGoal(drivebase, visionModule),
-        new Shoot(shooter, visionModule, true),
-        new SequentialCommandGroup(
-          new WaitCommand(1.5),
+    leftBumper.whenHeld(new ParallelCommandGroup(
+      new TurnToGoal(drivebase, visionModule),
+      new Shoot(shooter, visionModule, true),
+      new SequentialCommandGroup(
+        new WaitCommand(1.5),
+        new ParallelCommandGroup(
+          new SequentialCommandGroup(
+            new WaitCommand(0.75),
+            new StartEndCommand(
+              () -> intake.setIntakeSpeed(0.4),
+              () -> intake.setIntakeSpeed(0),
+              intake
+            )
+          ),
           new StartEndCommand(
-            () -> indexer.setIndexerSpeed(0.3, 0.75),
+            () -> indexer.setIndexerSpeed(0.6, 0.75),
             () -> indexer.setIndexerSpeed(0, 0),
             indexer
           )
         )
-      ).andThen(visionModule::stopTracking)
-    );
+      )
+    ));
 
     xButton.whenHeld(new ParallelCommandGroup(
       new Shoot(shooter, visionModule, false),
       new SequentialCommandGroup(
         new WaitCommand(1.5),
-        new StartEndCommand(
-          () -> indexer.setIndexerSpeed(0.3, 0.75),
-          () -> indexer.setIndexerSpeed(0, 0),
-          indexer
+        new ParallelCommandGroup(
+          new SequentialCommandGroup(
+            new WaitCommand(0.75),
+            new StartEndCommand(
+              () -> intake.setIntakeSpeed(0.4),
+              () -> intake.setIntakeSpeed(0),
+              intake
+            )
+          ),
+          new StartEndCommand(
+            () -> indexer.setIndexerSpeed(0.6, 0.75),
+            () -> indexer.setIndexerSpeed(0, 0),
+            indexer
+          )
         )
       )
     ));
 
     rightBumper.whenPressed(drivebase::reverse);
 
-    leftTrigger.whileHeld(() -> intake.setIntakeSpeed(Math.max(drivebase.getSpeed(), 0.6)));
-    leftTrigger.whenReleased(() -> intake.setIntakeSpeed(0));
+    leftTrigger.whenActive(() -> intake.setIntakeSpeed(Math.max(drivebase.getSpeed(), 0.6)));
+    leftTrigger.whenInactive(() -> intake.setIntakeSpeed(0));
 
     aButton.whenPressed(intake::retract);
     bButton.whenPressed(intake::extend);
 
-    up.whenPressed(() -> SmartDashboard.putNumber("goal_distance", 0));
-    down.whenPressed(() -> SmartDashboard.putNumber("goal_distance", 4.5));
+    up.whenPressed(() -> SmartDashboard.putNumber("hood_preset", 6));
+    down.whenPressed(() -> SmartDashboard.putNumber("hood_preset", 22));
   }
 
   public void setRumble(double rumble) {
@@ -126,49 +128,11 @@ public class RobotContainer {
   }
   
   public Command getAutonomousCommand() {
-    var autoVoltageConstraint =
-      new DifferentialDriveVoltageConstraint(
-          new SimpleMotorFeedforward(DrivebaseConstants.ksVolts, 
-            DrivebaseConstants.kvVoltSecondsPerMeter, 
-            DrivebaseConstants.kaVoltSecondsSquaredPerMeter),
-            DrivebaseConstants.kDriveKinematics,
-          10);
-
-    TrajectoryConfig config =
-      new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond, 
-      AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-          .setKinematics(DrivebaseConstants.kDriveKinematics)
-          .addConstraint(autoVoltageConstraint);
-            
-    Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(0, 0, new Rotation2d(0)),
-      List.of(
-        new Translation2d(1, 1)
-      ),
-      new Pose2d(0, 0, new Rotation2d(0)),
-      config);
-
-    RamseteCommand ramseteCommand = new RamseteCommand(
-      trajectory,
-      drivebase::getPose,
-      new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
-      new SimpleMotorFeedforward(DrivebaseConstants.ksVolts, DrivebaseConstants.kvVoltSecondsPerMeter, DrivebaseConstants.kaVoltSecondsSquaredPerMeter),
-      DrivebaseConstants.kDriveKinematics,
-      drivebase::getWheelSpeeds,
-      new PIDController(DrivebaseConstants.kPDriveVel, 0, 0),
-      new PIDController(DrivebaseConstants.kPDriveVel, 0, 0),
-      drivebase::tankDriveVolts,
-      drivebase);
-
-    drivebase.resetOdometry(trajectory.getInitialPose());
-
-    return new InstantCommand(() -> drivebase.resetOdometry(trajectory.getInitialPose()), drivebase)
-        .andThen(ramseteCommand)
-        .andThen(new InstantCommand(() -> drivebase.tankDriveVolts(0, 0), drivebase));
+    return AutonomousGenerator.createRamsete(drivebase, shooter);
   }
 
   public Command getTestCommand() {
-    return new RunTests(drivebase, intake, indexer, shooter, visionModule);
+    return new RunTests(drivebase, intake, indexer, shooter);
   }
 
   private double applyDeadband(double value) {

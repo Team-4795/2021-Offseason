@@ -22,8 +22,8 @@ public final class Constants {
 	public static final class IntakeConstants {
 		public static final int INTAKE_SPARK = 0;
 	
-		public static final int FORWARD_SOLENOID = 6;
-		public static final int REVERSE_SOLENOID = 7;
+		public static final int FORWARD_SOLENOID = 1;
+		public static final int REVERSE_SOLENOID = 0;
 	}
 	
 	public static final class IndexerConstants {

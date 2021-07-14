@@ -20,9 +20,6 @@ public class ZeroHood extends CommandBase {
   }
 
   @Override
-  public void initialize() {}
-
-  @Override
   public void execute() {
     if(!shooter.isHoodRetracted()) {
       shooter.setHoodSpeed(0.05);
