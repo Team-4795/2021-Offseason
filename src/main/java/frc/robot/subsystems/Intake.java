@@ -14,6 +14,10 @@ public class Intake extends SubsystemBase {
   private PWMSparkMax intakeMotor = new PWMSparkMax(IntakeConstants.INTAKE_SPARK); 
   private DoubleSolenoid solenoid = new DoubleSolenoid(IntakeConstants.FORWARD_SOLENOID, IntakeConstants.REVERSE_SOLENOID);
 
+  public Intake() {
+    solenoid.set(Value.kForward);
+  }
+
   public void setIntakeSpeed(double speed) {
     intakeMotor.set(speed);
   }

@@ -53,7 +53,7 @@ public final class Constants {
 		public static final String CAMERA_NAME = "mmal_service_16.1";
 
 		public static final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(12);
-		public static final double TARGET_HEIGHT_METERS = Units.feetToMeters(82);
+		public static final double TARGET_HEIGHT_METERS = Units.inchesToMeters(82);
 		public static final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(20);
 	}
 
@@ -78,6 +78,7 @@ public final class Constants {
 		public static final int A_BUTTON = 1;
 		public static final int B_BUTTON = 2;
 		public static final int X_BUTTON = 3;
+		public static final int Y_BUTTON = 4;
 
 		public static final int UP = 0;
 		public static final int DOWN = 180;

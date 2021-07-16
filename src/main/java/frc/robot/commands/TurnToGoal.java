@@ -25,9 +25,9 @@ public class TurnToGoal extends CommandBase {
     if(!vision.hasTarget()) return;
 
     double angle = vision.getTargetAngle();
-    double turnSpeed = -angle / 600.0;
+    double turnSpeed = -angle / 400.0;
     
-    turnSpeed = MathUtil.clamp(Math.copySign(Math.max(Math.abs(turnSpeed), 0.035), turnSpeed), -0.1, 0.1);
+    turnSpeed = MathUtil.clamp(Math.copySign(Math.max(Math.abs(turnSpeed), 0.05), turnSpeed), -0.15, 0.15);
 
     if(Math.abs(angle) > 1.5) {
       drivebase.curvatureDrive(0, turnSpeed, true);

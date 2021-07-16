@@ -21,54 +21,82 @@ import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DrivebaseConstants;
 import frc.robot.commands.Shoot;
+import frc.robot.commands.TurnToGoal;
 import frc.robot.subsystems.Drivebase;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.VisionModule;
 
-public class AutonomousGenerator {
-  public static Command createBasic(Drivebase drivebase, Shooter shooter, Indexer indexer, Intake intake, VisionModule visionModule) {
+public class Autonomous {
+  private Drivebase drivebase;
+  private Shooter shooter;
+  private Indexer indexer;
+  private Intake intake;
+  private VisionModule visionModule;
+
+  public Autonomous(Drivebase drivebase, Shooter shooter, Indexer indexer, Intake intake, VisionModule visionModule) {
+    this.drivebase = drivebase;
+    this.shooter = shooter;
+    this.indexer = indexer;
+    this.intake = intake;
+    this.visionModule = visionModule;
+  }
+
+  public Command shootAndDriveBack() {
     return new ParallelCommandGroup(
+      new TurnToGoal(drivebase, visionModule),
       new Shoot(shooter, visionModule, true),
       new SequentialCommandGroup(
+        new InstantCommand(intake::extend, intake),
         new WaitCommand(1.5),
-        new ParallelCommandGroup(
-          new SequentialCommandGroup(
-            new WaitCommand(0.75),
-            new StartEndCommand(
-              () -> intake.setIntakeSpeed(0.4),
-              () -> intake.setIntakeSpeed(0),
-              intake
-            )
-          ),
-          new StartEndCommand(
-            () -> indexer.setIndexerSpeed(0.6, 0.75),
-            () -> indexer.setIndexerSpeed(0, 0),
-            indexer
-          )
-        )
-      ),
-      new SequentialCommandGroup(
-        new WaitCommand(5),
+        new InstantCommand(() -> indexer.setIndexerSpeed(0.6, 0.75), indexer),
+        new WaitCommand(0.5),
+        new InstantCommand(() -> intake.setIntakeSpeed(0.4), intake),
+        new WaitCommand(3),
         new FunctionalCommand(
-            drivebase::resetEncoders,
-            () -> drivebase.curvatureDrive(-0.2, 0, false),
-            interrupted -> drivebase.curvatureDrive(0, 0, false),
-            () -> drivebase.getLeftEncoder() / 10.0 * DrivebaseConstants.wheelDiameterMeters * Math.PI <= -2,
-            drivebase
+          drivebase::resetEncoders,
+          () -> drivebase.curvatureDrive(-0.25, 0, false),
+          interrupted -> drivebase.curvatureDrive(0, 0, false),
+          () -> drivebase.getLeftEncoder() / 10.0 * DrivebaseConstants.wheelDiameterMeters * Math.PI <= -1.5,
+          drivebase
         )
       )
     );
   }
 
-  public static Command createRamsete(Drivebase drivebase, Shooter shooter) {
+  public Command intakeAndShoot() {
+    return new SequentialCommandGroup(
+      new InstantCommand(intake::extend, intake),
+      new WaitCommand(1.5),
+      new InstantCommand(() -> intake.setIntakeSpeed(0.6), intake),
+      new FunctionalCommand(
+        drivebase::resetEncoders,
+        () -> drivebase.curvatureDrive(-0.25, 0, false),
+        interrupted -> drivebase.curvatureDrive(0, 0, false),
+        () -> drivebase.getLeftEncoder() / 10.0 * DrivebaseConstants.wheelDiameterMeters * Math.PI <= -3,
+        drivebase
+      ),
+      new InstantCommand(() -> intake.setIntakeSpeed(0), intake),
+      new ParallelCommandGroup(
+        new TurnToGoal(drivebase, visionModule),
+        new Shoot(shooter, visionModule, true),
+        new SequentialCommandGroup(
+          new WaitCommand(1.5),
+          new InstantCommand(() -> indexer.setIndexerSpeed(0.6, 0.75), indexer),
+          new WaitCommand(0.5),
+          new InstantCommand(() -> intake.setIntakeSpeed(0.4), intake)
+        )
+      )
+    );
+  }
+
+  public Command createRamsete() {
     var autoVoltageConstraint =
       new DifferentialDriveVoltageConstraint(
           new SimpleMotorFeedforward(DrivebaseConstants.ksVolts, 

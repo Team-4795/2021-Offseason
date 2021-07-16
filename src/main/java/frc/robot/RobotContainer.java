@@ -19,13 +19,14 @@ import frc.robot.Constants.ControllerConstants;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 
@@ -42,6 +43,10 @@ public class RobotContainer {
 
   private final Joystick controller = new Joystick(0);
 
+  private final Autonomous autonomous = new Autonomous(drivebase, shooter, indexer, intake, visionModule);
+
+  private final SendableChooser<Command> autonomousSelector = new SendableChooser<>();
+
   public RobotContainer() {
     drivebase.setDefaultCommand(new EastDrive(
       drivebase,
@@ -50,7 +55,13 @@ public class RobotContainer {
       () -> applyDeadband(controller.getRawAxis(ControllerConstants.RIGHT_TRIGGER))
     ));
     indexer.setDefaultCommand(new RunCommand(() -> indexer.setIndexerSpeed(0, -0.15), indexer));
+    intake.setDefaultCommand(new RunCommand(() -> intake.setIntakeSpeed(0), intake));
     shooter.setDefaultCommand(new ZeroHood(shooter));
+
+    autonomousSelector.addOption("Shoot and drive back", autonomous.shootAndDriveBack());
+    autonomousSelector.addOption("Intake and shoot", autonomous.intakeAndShoot());
+
+    SmartDashboard.putData(autonomousSelector);
     
     configureButtonBindings();
   }
@@ -62,6 +73,7 @@ public class RobotContainer {
     JoystickButton aButton = new JoystickButton(controller, ControllerConstants.A_BUTTON);
     JoystickButton bButton = new JoystickButton(controller, ControllerConstants.B_BUTTON);
     JoystickButton xButton = new JoystickButton(controller, ControllerConstants.X_BUTTON);
+    JoystickButton yButton = new JoystickButton(controller, ControllerConstants.Y_BUTTON);
     POVButton up = new POVButton(controller, ControllerConstants.UP);
     POVButton down = new POVButton(controller, ControllerConstants.DOWN);
 
@@ -69,54 +81,39 @@ public class RobotContainer {
       new TurnToGoal(drivebase, visionModule),
       new Shoot(shooter, visionModule, true),
       new SequentialCommandGroup(
-        new WaitCommand(1.5),
-        new ParallelCommandGroup(
-          new SequentialCommandGroup(
-            new WaitCommand(0.75),
-            new StartEndCommand(
-              () -> intake.setIntakeSpeed(0.4),
-              () -> intake.setIntakeSpeed(0),
-              intake
-            )
-          ),
-          new StartEndCommand(
-            () -> indexer.setIndexerSpeed(0.6, 0.75),
-            () -> indexer.setIndexerSpeed(0, 0),
-            indexer
-          )
-        )
+        new InstantCommand(intake::extend, intake),
+        new WaitCommand(1.5), // Base on target centering with a min of 1.5
+        new InstantCommand(() -> indexer.setIndexerSpeed(0.6, 0.75), indexer),
+        new WaitCommand(0.5),
+        new InstantCommand(() -> intake.setIntakeSpeed(0.4), intake)
       )
     ));
 
     xButton.whenHeld(new ParallelCommandGroup(
       new Shoot(shooter, visionModule, false),
       new SequentialCommandGroup(
+        new InstantCommand(intake::extend, intake),
         new WaitCommand(1.5),
-        new ParallelCommandGroup(
-          new SequentialCommandGroup(
-            new WaitCommand(0.75),
-            new StartEndCommand(
-              () -> intake.setIntakeSpeed(0.4),
-              () -> intake.setIntakeSpeed(0),
-              intake
-            )
-          ),
-          new StartEndCommand(
-            () -> indexer.setIndexerSpeed(0.6, 0.75),
-            () -> indexer.setIndexerSpeed(0, 0),
-            indexer
-          )
-        )
+        new InstantCommand(() -> indexer.setIndexerSpeed(0.6, 0.75), indexer),
+        new WaitCommand(0.5),
+        new InstantCommand(() -> intake.setIntakeSpeed(0.4), intake)
       )
     ));
 
     rightBumper.whenPressed(drivebase::reverse);
 
-    leftTrigger.whenActive(() -> intake.setIntakeSpeed(Math.max(drivebase.getSpeed(), 0.6)));
-    leftTrigger.whenInactive(() -> intake.setIntakeSpeed(0));
+    leftTrigger.whenActive(new ParallelCommandGroup(
+      new InstantCommand(() -> intake.setIntakeSpeed(Math.max(drivebase.getSpeed(), 0.4)), intake),
+      new InstantCommand(() -> indexer.setIndexerSpeed(0, 0), indexer)
+    ));
 
-    aButton.whenPressed(intake::retract);
-    bButton.whenPressed(intake::extend);
+    aButton.whenPressed(intake::extend);
+    bButton.whenPressed(intake::retract);
+
+    yButton.whileHeld(new ParallelCommandGroup(
+      new InstantCommand(() -> shooter.setHoodAngle(40), shooter),
+      new InstantCommand(() -> intake.setIntakeSpeed(-0.6), intake)
+    ));
 
     up.whenPressed(() -> SmartDashboard.putNumber("hood_preset", 6));
     down.whenPressed(() -> SmartDashboard.putNumber("hood_preset", 22));
@@ -128,7 +125,7 @@ public class RobotContainer {
   }
   
   public Command getAutonomousCommand() {
-    return AutonomousGenerator.createRamsete(drivebase, shooter);
+    return autonomousSelector.getSelected();
   }
 
   public Command getTestCommand() {
