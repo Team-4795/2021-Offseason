@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -54,7 +55,7 @@ public class RobotContainer {
       () -> applyDeadband(-controller.getRawAxis(ControllerConstants.RIGHT_JOYSTICK)),
       () -> applyDeadband(controller.getRawAxis(ControllerConstants.RIGHT_TRIGGER))
     ));
-    indexer.setDefaultCommand(new RunCommand(() -> indexer.setIndexerSpeed(0, -0.15), indexer));
+    indexer.setDefaultCommand(new RunCommand(() -> indexer.setIndexerSpeed(0, -0.25), indexer));
     intake.setDefaultCommand(new RunCommand(() -> intake.setIntakeSpeed(0), intake));
     shooter.setDefaultCommand(new ZeroHood(shooter));
 
@@ -76,13 +77,14 @@ public class RobotContainer {
     JoystickButton yButton = new JoystickButton(controller, ControllerConstants.Y_BUTTON);
     POVButton up = new POVButton(controller, ControllerConstants.UP);
     POVButton down = new POVButton(controller, ControllerConstants.DOWN);
+    POVButton left = new POVButton(controller, ControllerConstants.LEFT);
 
     leftBumper.whenHeld(new ParallelCommandGroup(
       new TurnToGoal(drivebase, visionModule),
       new Shoot(shooter, visionModule, true),
       new SequentialCommandGroup(
         new InstantCommand(intake::extend, intake),
-        new WaitCommand(1.5), // Base on target centering with a min of 1.5
+        new WaitUntilCommand(() -> shooter.getShooterRPM() > 3600 && Math.abs(visionModule.getTargetAngle()) < 1.5),
         new InstantCommand(() -> indexer.setIndexerSpeed(0.6, 0.75), indexer),
         new WaitCommand(0.5),
         new InstantCommand(() -> intake.setIntakeSpeed(0.4), intake)
@@ -90,10 +92,11 @@ public class RobotContainer {
     ));
 
     xButton.whenHeld(new ParallelCommandGroup(
+      new TurnToGoal(drivebase, visionModule),
       new Shoot(shooter, visionModule, false),
       new SequentialCommandGroup(
         new InstantCommand(intake::extend, intake),
-        new WaitCommand(1.5),
+        new WaitUntilCommand(() -> shooter.getShooterRPM() > 3600 && Math.abs(visionModule.getTargetAngle()) < 1.5),
         new InstantCommand(() -> indexer.setIndexerSpeed(0.6, 0.75), indexer),
         new WaitCommand(0.5),
         new InstantCommand(() -> intake.setIntakeSpeed(0.4), intake)
@@ -102,21 +105,21 @@ public class RobotContainer {
 
     rightBumper.whenPressed(drivebase::reverse);
 
-    leftTrigger.whenActive(new ParallelCommandGroup(
-      new InstantCommand(() -> intake.setIntakeSpeed(Math.max(drivebase.getSpeed(), 0.4)), intake),
-      new InstantCommand(() -> indexer.setIndexerSpeed(0, 0), indexer)
+    leftTrigger.whileActiveContinuous(new ParallelCommandGroup(
+      new InstantCommand(() -> intake.setIntakeSpeed(Math.max(drivebase.getSpeed(), 0.4)), intake)
     ));
 
-    aButton.whenPressed(intake::extend);
-    bButton.whenPressed(intake::retract);
+    aButton.whenPressed(intake::extend, intake);
+    bButton.whenPressed(intake::retract, intake);
 
     yButton.whileHeld(new ParallelCommandGroup(
       new InstantCommand(() -> shooter.setHoodAngle(40), shooter),
-      new InstantCommand(() -> intake.setIntakeSpeed(-0.6), intake)
+      new InstantCommand(() -> intake.setIntakeSpeed(-0.4), intake)
     ));
 
-    up.whenPressed(() -> SmartDashboard.putNumber("hood_preset", 6));
-    down.whenPressed(() -> SmartDashboard.putNumber("hood_preset", 22));
+    up.whenPressed(() -> SmartDashboard.putNumber("hood_preset", 0));
+    down.whenPressed(() -> SmartDashboard.putNumber("hood_preset", 2));
+    left.whenPressed(() -> SmartDashboard.putNumber("hood_preset", 1));
   }
 
   public void setRumble(double rumble) {

@@ -52,9 +52,9 @@ public final class Constants {
 	public static final class VisionConstants {
 		public static final String CAMERA_NAME = "mmal_service_16.1";
 
-		public static final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(12);
-		public static final double TARGET_HEIGHT_METERS = Units.inchesToMeters(82);
-		public static final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(20);
+		public static final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(11.75);
+		public static final double TARGET_HEIGHT_METERS = Units.inchesToMeters(88);
+		public static final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(18);
 	}
 
 	public static final class AutoConstants {
@@ -82,6 +82,7 @@ public final class Constants {
 
 		public static final int UP = 0;
 		public static final int DOWN = 180;
+		public static final int LEFT = 270;
 	
 		public static final double JOYSTICK_DEADBAND = 0.05;
 	}

@@ -37,11 +37,11 @@ public class VisionModule extends SubsystemBase {
     if (result.hasTargets()) {
       hasTarget = true;
       targetDistance =
-              PhotonUtils.calculateDistanceToTargetMeters(
+              Units.metersToFeet(PhotonUtils.calculateDistanceToTargetMeters(
                       VisionConstants.CAMERA_HEIGHT_METERS,
                       VisionConstants.TARGET_HEIGHT_METERS,
                       VisionConstants.CAMERA_PITCH_RADIANS,
-                      Units.degreesToRadians(result.getBestTarget().getPitch()));
+                      Units.degreesToRadians(result.getBestTarget().getPitch())));
       targetAngle = result.getBestTarget().getYaw();
     } else {
       hasTarget = false;

@@ -5,7 +5,6 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Units;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpiutil.math.MathUtil;
 import frc.robot.subsystems.Shooter;
@@ -26,12 +25,22 @@ public class Shoot extends CommandBase {
 
   @Override
   public void execute() {
-    shooter.setShooterRPM(5500);
-
     if(useCV && vision.hasTarget()) {
-      shooter.setHoodAngle(MathUtil.clamp(Units.metersToFeet(vision.getTargetDistance()) * 0.12 + 8.0, 0, 36));
+      shooter.setShooterRPM(3700);
+      shooter.setHoodAngle(MathUtil.clamp(vision.getTargetDistance() * 6.0 / 13.0 + 460.0 / 13.0, 0, 45));
     } else {
-      shooter.setHoodAngle(SmartDashboard.getNumber("hood_preset", 22));
+      double hoodPreset = SmartDashboard.getNumber("hood_preset", 1);
+
+      if(hoodPreset == 0) {
+        shooter.setShooterRPM(3900);
+        shooter.setHoodAngle(3);
+      } else if(hoodPreset == 1) {
+        shooter.setShooterRPM(3900);
+        shooter.setHoodAngle(42);
+      } else if(hoodPreset == 2) {
+        shooter.setShooterRPM(3900);
+        shooter.setHoodAngle(45);
+      }
     }
   }
 

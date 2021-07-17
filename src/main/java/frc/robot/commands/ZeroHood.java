@@ -22,7 +22,7 @@ public class ZeroHood extends CommandBase {
   @Override
   public void execute() {
     if(!shooter.isHoodRetracted()) {
-      shooter.setHoodSpeed(0.075);
+      shooter.setHoodSpeed(0.1);
     } else {
       shooter.setHoodSpeed(0);
     }

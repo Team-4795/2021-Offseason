@@ -12,10 +12,14 @@ import frc.robot.subsystems.VisionModule;
 public class TurnToGoal extends CommandBase {
   private Drivebase drivebase;
   private VisionModule vision;
+  
+  private long lastUpdate;
 
   public TurnToGoal(Drivebase drivebase, VisionModule vision) {
     this.drivebase = drivebase;
     this.vision = vision;
+
+    lastUpdate = System.currentTimeMillis();
 
     addRequirements(drivebase);
   }
@@ -27,10 +31,12 @@ public class TurnToGoal extends CommandBase {
     double angle = vision.getTargetAngle();
     double turnSpeed = -angle / 400.0;
     
-    turnSpeed = MathUtil.clamp(Math.copySign(Math.max(Math.abs(turnSpeed), 0.05), turnSpeed), -0.15, 0.15);
+    turnSpeed = MathUtil.clamp(Math.copySign(Math.max(Math.abs(turnSpeed), 0.035), turnSpeed), -0.15, 0.15);
 
-    if(Math.abs(angle) > 1.5) {
+    if(Math.abs(angle + 1) > 1) {
       drivebase.curvatureDrive(0, turnSpeed, true);
+
+      lastUpdate = System.currentTimeMillis();
     } else {
       drivebase.curvatureDrive(0, 0, false);
     }
@@ -38,6 +44,6 @@ public class TurnToGoal extends CommandBase {
 
   @Override
   public boolean isFinished() {
-    return false;
+    return System.currentTimeMillis() - lastUpdate > 250;
   }
 }

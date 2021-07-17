@@ -37,8 +37,16 @@ public class Shooter extends SubsystemBase {
 
   public Shooter() {
     acceleratorWheel.restoreFactoryDefaults();
-    hood.restoreFactoryDefaults();    
     leaderFlywheel.configFactoryDefault();
+    hood.restoreFactoryDefaults();
+
+    acceleratorWheel.enableVoltageCompensation(12);
+    
+    leaderFlywheel.configVoltageCompSaturation(12);
+    leaderFlywheel.enableVoltageCompensation(true);
+
+    followerFlywheel.configVoltageCompSaturation(12);
+    followerFlywheel.enableVoltageCompensation(true);
 
     acceleratorController = acceleratorWheel.getPIDController();
     hoodController = hood.getPIDController();
@@ -65,7 +73,7 @@ public class Shooter extends SubsystemBase {
     hoodController.setP(0.2);
     hoodController.setOutputRange(-0.5, 0.5);
 
-    leaderFlywheel.config_kF(0, 0.0485, 0);
+    leaderFlywheel.config_kF(0, 0.047, 0);
     leaderFlywheel.config_kP(0, 0.016, 0);
   }
 
@@ -91,12 +99,14 @@ public class Shooter extends SubsystemBase {
   }
 
   public void setShooterRPM(double speed) {
-    // 2048 ticks per revolution 
-    // ticks per .10 second 
-    // 1 / 2048 * 60
+    // 2048 ticks per revolution, ticks per .10 second, 1 / 2048 * 60
     double speed_FalconUnits = speed / (600.0) * 2048.0;
     leaderFlywheel.set(TalonFXControlMode.Velocity, speed_FalconUnits);
     acceleratorController.setReference(speed, ControlType.kVelocity);
+  }
+
+  public double getShooterRPM() {
+    return (leaderFlywheel.getSelectedSensorVelocity()) / 2048.0 * 600;
   }
 
   @Override
@@ -106,7 +116,7 @@ public class Shooter extends SubsystemBase {
     }
     
     SmartDashboard.putBoolean("limit switch", hoodLimit.get());
-    SmartDashboard.putNumber("shooter speed", (leaderFlywheel.getSelectedSensorVelocity()) / 2048.0 * 600);
+    SmartDashboard.putNumber("shooter RPM", getShooterRPM());
     SmartDashboard.putNumber("hood angle", hoodEncoder.getPosition() / ShooterConstants.encoderRotationsPerHoodDegree);
   }
 }

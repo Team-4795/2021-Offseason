@@ -45,8 +45,8 @@ public class EastDrive extends CommandBase {
     double rotation = m_zaxisRotateSupplier.get();
     double throttle = m_throttle.get();
 
-    acceleration = 0.5 * acceleration + 0.5 * Math.pow(acceleration, 3);
-    throttle = (1.0 - throttle * 0.75);
+    acceleration = Math.min(0.5 * acceleration + 0.5 * Math.pow(acceleration, 3), 0.75);
+    throttle = (1.0 - throttle * 0.65);
     
     if(Math.abs(acceleration) > 0) {
       lastAcceleration = System.currentTimeMillis();

@@ -49,22 +49,23 @@ public class Autonomous {
   }
 
   public Command shootAndDriveBack() {
-    return new ParallelCommandGroup(
+    return new SequentialCommandGroup(
       new TurnToGoal(drivebase, visionModule),
-      new Shoot(shooter, visionModule, true),
-      new SequentialCommandGroup(
-        new InstantCommand(intake::extend, intake),
-        new WaitCommand(1.5),
-        new InstantCommand(() -> indexer.setIndexerSpeed(0.6, 0.75), indexer),
-        new WaitCommand(0.5),
-        new InstantCommand(() -> intake.setIntakeSpeed(0.4), intake),
-        new WaitCommand(3),
-        new FunctionalCommand(
-          drivebase::resetEncoders,
-          () -> drivebase.curvatureDrive(-0.25, 0, false),
-          interrupted -> drivebase.curvatureDrive(0, 0, false),
-          () -> drivebase.getLeftEncoder() / 10.0 * DrivebaseConstants.wheelDiameterMeters * Math.PI <= -1.5,
-          drivebase
+      new ParallelCommandGroup(
+        new Shoot(shooter, visionModule, true),
+        new SequentialCommandGroup(
+          new WaitCommand(2),
+          new InstantCommand(() -> indexer.setIndexerSpeed(0.6, 0.75), indexer),
+          new WaitCommand(0.5),
+          new InstantCommand(() -> intake.setIntakeSpeed(0.4), intake),
+          new WaitCommand(4),
+          new FunctionalCommand(
+            drivebase::resetEncoders,
+            () -> drivebase.curvatureDrive(-0.25, 0, false),
+            interrupted -> drivebase.curvatureDrive(0, 0, false),
+            () -> drivebase.getLeftEncoder() / 10.0 * DrivebaseConstants.wheelDiameterMeters * Math.PI <= -1.5,
+            drivebase
+          )
         )
       )
     );
@@ -72,14 +73,13 @@ public class Autonomous {
 
   public Command intakeAndShoot() {
     return new SequentialCommandGroup(
-      new InstantCommand(intake::extend, intake),
-      new WaitCommand(1.5),
+      new WaitCommand(2),
       new InstantCommand(() -> intake.setIntakeSpeed(0.6), intake),
       new FunctionalCommand(
         drivebase::resetEncoders,
         () -> drivebase.curvatureDrive(-0.25, 0, false),
         interrupted -> drivebase.curvatureDrive(0, 0, false),
-        () -> drivebase.getLeftEncoder() / 10.0 * DrivebaseConstants.wheelDiameterMeters * Math.PI <= -3,
+        () -> drivebase.getLeftEncoder() / 10.0 * DrivebaseConstants.wheelDiameterMeters * Math.PI <= -2.5,
         drivebase
       ),
       new InstantCommand(() -> intake.setIntakeSpeed(0), intake),
@@ -87,7 +87,7 @@ public class Autonomous {
         new TurnToGoal(drivebase, visionModule),
         new Shoot(shooter, visionModule, true),
         new SequentialCommandGroup(
-          new WaitCommand(1.5),
+          new WaitCommand(2),
           new InstantCommand(() -> indexer.setIndexerSpeed(0.6, 0.75), indexer),
           new WaitCommand(0.5),
           new InstantCommand(() -> intake.setIntakeSpeed(0.4), intake)
